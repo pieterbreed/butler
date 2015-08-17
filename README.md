@@ -6,6 +6,7 @@ It's not the plan that's important, but the planning.
 
  - a tool with which to do planning
  - loosely inspired by the bullet journal concept
+ - an experiment in recording history
 
 
 

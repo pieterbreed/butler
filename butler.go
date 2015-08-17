@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"time"
+//	"regexp"
 
 	"github.com/fatih/color"
 )
@@ -23,6 +24,8 @@ var (
 	Yellow = color.New(color.FgYellow, color.Bold).SprintFunc()
 	Red = color.New(color.FgRed, color.Bold).SprintFunc()
 	Gray = color.New(color.FgBlack, color.Bold).SprintFunc()
+	SuperWhite = color.New(color.FgWhite, color.Bold).SprintFunc()
+	Pink = color.New(color.FgRed).SprintFunc()
 )
 
 type DiaryItem interface {
@@ -96,8 +99,52 @@ func (ci CalendarItem) Text() string {
 type ImportantItem struct {
 	item DiaryItem
 }
-func (ii ImportantItem) Symbol() string { return fmt.Sprintf("%s%s", Yellow(IMPORTANT), ii.item.Symbol()) }
-func (ii ImportantItem) Text() string { return ii.item.Text() }
+func (ii ImportantItem) Symbol() string { return fmt.Sprintf("%s%s", ii.item.Symbol(), Pink(IMPORTANT)) }
+func (ii ImportantItem) Text() string { return SuperWhite(ii.item.Text()) }
+func MakeImportant(item DiaryItem) DiaryItem {
+	importantItem, ok := item.(ImportantItem)
+	if ok { return importantItem }
+	return ImportantItem{item}
+}
+
+////////////////////////////////////////
+
+type Diary []DiaryItem
+
+func NewDiary() Diary {
+	return NewDiaryN(0)
+}
+
+func NewDiaryN(n int) Diary {
+	return make([]DiaryItem, n)
+}
+
+func (d Diary) Length() int {
+	return len(d)
+}
+
+// adds to the end of the diary, like if you were writing on paper
+func (d Diary) Add(item ...DiaryItem) Diary {
+	return append(d, item...)
+}
+
+func (d Diary) Select(selector func(i int, di DiaryItem)) {
+	for i, di := range d {
+		selector(i, di)
+	}
+}
+
+func (d Diary) Modify(predicate func (i DiaryItem) bool, modification func (i DiaryItem) DiaryItem) Diary {
+	result := NewDiaryN(d.Length())
+	for i := 0; i < len(d); i++ {
+		if predicate(d[i]) {
+			result = append(result, modification(d[i]))
+		} else {
+			result = append(result, d[i])
+		}
+	}
+	return result
+}
 
 ////////////////////////////////////////
 
@@ -105,15 +152,25 @@ func PrintItem(item DiaryItem) string {
 	return fmt.Sprintf("%s %s", item.Symbol(), item.Text())
 }
 
+func SelectorFromRegexp(_ string) (func(DiaryItem) bool) {
+	return func(item DiaryItem) bool {
+		return true
+	}
+}
+
 func main() {
-	items := make([]DiaryItem, 0)
-	items = append(items,
-		TodoItem{"get this code written"},
-		Cancel(TodoItem{"get this code written"}),
-		TodoItem{"perform coding magic"}.MarkAsDone(),
-		ImportantItem{TodoItem{"get some sleep"}},
-		CalendarItem{"Ferdl", "Somerset Wes", time.Now().Add(-90 * time.Minute), time.Hour},
-		Cancel(CalendarItem{"Ferdl", "Somerset Wes", time.Now().Add(-90 * time.Minute), time.Hour}))
+	items := NewDiary()
+	items = items.Add(TodoItem{"get ready for work"}).Modify(SelectorFromRegexp("aoeu"), MakeImportant)
+	
+
+// make([]DiaryItem, 0)
+// 	items = append(items,
+// 		TodoItem{"get this code written"},
+// 		Cancel(TodoItem{"get this code written"}),
+// 		TodoItem{"perform coding magic"}.MarkAsDone(),
+// 		MakeImportant(TodoItem{"get some sleep"}),
+// 		CalendarItem{"Ferdl", "Somerset Wes", time.Now().Add(-90 * time.Minute), time.Hour},
+// 		Cancel(CalendarItem{"Ferdl", "Somerset Wes", time.Now().Add(-90 * time.Minute), time.Hour}))
 	for _, i := range items {
 		fmt.Println(PrintItem(i))
 	}
