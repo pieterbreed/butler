@@ -59,12 +59,26 @@ func Test_RegexFinderWorks(t *testing.T) {
 }
 
 func Test_ExistingItemsCanBeFoundAndModified(t *testing.T) {
+	checker := func(d Diary) int {
+		importants := 0
+		for i := 0; i < d.Length(); i++ {
+			if IsImportant(d.UnsafeGet(i)) {
+				importants++
+			}
+		}
+		return importants
+	}
+
 	p := MakeDiary(NewTodo("testing1"), NewTodo("testing2"))
 
 	assert.NotNil(t, p)
 	assert.Equal(t, 2, p.Length())
+	assert.Equal(t, 0, checker(p))
 
-	p2, _ := p.FindAllToChange(RegexOnSummaryFinder(regexp.MustCompile("2")), ImportantChanger())
+	p2, _ := p.FindAllToChange(
+		RegexOnSummaryFinder(regexp.MustCompile("2")),
+		ImportantChanger())
 	assert.NotNil(t, p2)
 	assert.Equal(t, 2, p2.Length())
+	assert.Equal(t, 1, checker(p2))
 }
