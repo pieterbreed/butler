@@ -1,6 +1,9 @@
 package data
 
-import "testing"
+import (
+	"regexp"
+	"testing"
+)
 import "time"
 import "github.com/stretchr/testify/assert"
 
@@ -38,4 +41,30 @@ func Test_CanModifyADiaryByAddAnItem(t *testing.T) {
 	assert.Equal(t, 0, p.Length())
 	assert.Equal(t, 1, p2.Length())
 	assert.Equal(t, 3, p3.Length())
+}
+
+func Test_ImportantMakerWorks(t *testing.T) {
+	i := ImportantChanger()
+	item := i.Change(NewTodo("testing"))
+	assert.True(t, IsImportant(item))
+	assert.False(t, IsImportant(NewTodo("testing")))
+}
+
+func Test_RegexFinderWorks(t *testing.T) {
+	rf := RegexOnSummaryFinder(regexp.MustCompile("match"))
+	a := NewTodo("testing")
+	b := NewTodo("must_match")
+	assert.False(t, rf.Finds(a))
+	assert.True(t, rf.Finds(b))
+}
+
+func Test_ExistingItemsCanBeFoundAndModified(t *testing.T) {
+	p := MakeDiary(NewTodo("testing1"), NewTodo("testing2"))
+
+	assert.NotNil(t, p)
+	assert.Equal(t, 2, p.Length())
+
+	p2, _ := p.FindAllToChange(RegexOnSummaryFinder(regexp.MustCompile("2")), ImportantChanger())
+	assert.NotNil(t, p2)
+	assert.Equal(t, 2, p2.Length())
 }
