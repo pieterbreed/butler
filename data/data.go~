@@ -1,5 +1,0 @@
-package data
-
-type DiaryItem interface {
-	Summary() string // the summary one-liner for this item
-}
