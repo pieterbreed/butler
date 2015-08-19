@@ -47,11 +47,11 @@ func NewCalendarItem(who, where, forwhat string, when time.Time, duration time.D
 
 // wrapper type, means the wrapped item is important
 type ImportantItem struct {
-	item DiaryItem
+	Item DiaryItem
 }
 
 func (ii *ImportantItem) Summary() string {
-	return ii.item.Summary()
+	return ii.Item.Summary()
 }
 
 func MakeImportant(item DiaryItem) DiaryItem {
@@ -65,7 +65,9 @@ type Diary interface {
 	Length() int                                          // how many items are in this project
 	Get(i int) (DiaryItem, error)                         // returns the diaryitem at index i
 	UnsafeGet(i int) DiaryItem                            // panics if index is out of range
-	FindAllToChange(ItemFinder, ItemChanger) (Diary, int) // select items with ItemFinder, change with ItemChanger, get a new Diary back and how many changes were made
+	FindAllToChange(
+		ItemFinder,
+		ItemChanger) (Diary, int) // select items with ItemFinder, change with ItemChanger, get a new Diary back and how many changes were made
 }
 type ItemChanger interface {
 	Change(DiaryItem) DiaryItem
@@ -104,11 +106,11 @@ func IsImportant(item DiaryItem) bool {
 }
 
 type DiaryItemsDiary struct {
-	items []DiaryItem
+	Items []DiaryItem
 }
 
 func (d *DiaryItemsDiary) Length() int {
-	return len(d.items)
+	return len(d.Items)
 }
 
 func (d *DiaryItemsDiary) UnsafeGet(i int) DiaryItem {
@@ -120,25 +122,25 @@ func (d *DiaryItemsDiary) UnsafeGet(i int) DiaryItem {
 }
 
 func (d *DiaryItemsDiary) Get(i int) (DiaryItem, error) {
-	if i > len(d.items) {
+	if i > len(d.Items) {
 		return nil, fmt.Errorf("Index out of range for Diary")
 	}
-	return d.items[i], nil
+	return d.Items[i], nil
 }
 
 func (d *DiaryItemsDiary) FindAllToChange(
 	finder ItemFinder,
 	changer ItemChanger) (Diary, int) {
 
-	result := &DiaryItemsDiary{make([]DiaryItem, 0, len(d.items))}
+	result := &DiaryItemsDiary{make([]DiaryItem, 0, len(d.Items))}
 	changes := 0
 
-	for i := 0; i < len(d.items); i++ {
-		if finder.Finds(d.items[i]) {
-			result.items = append(result.items, changer.Change(d.items[i]))
+	for i := 0; i < len(d.Items); i++ {
+		if finder.Finds(d.Items[i]) {
+			result.Items = append(result.Items, changer.Change(d.Items[i]))
 			changes++
 		} else {
-			result.items = append(result.items, d.items[i])
+			result.Items = append(result.Items, d.Items[i])
 		}
 	}
 
@@ -150,5 +152,5 @@ func MakeDiary(items ...DiaryItem) *DiaryItemsDiary {
 }
 
 func (d *DiaryItemsDiary) Add(items ...DiaryItem) *DiaryItemsDiary {
-	return &DiaryItemsDiary{append(d.items, items...)}
+	return &DiaryItemsDiary{append(d.Items, items...)}
 }
