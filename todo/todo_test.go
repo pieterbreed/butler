@@ -1,20 +1,15 @@
 package todo
 
 import (
-	"testing"
 	"strings"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 )
 
 func Test_CanCreateTodo(t *testing.T) {
 	var todo *Todo = New("this must get done")
 	assert.NotNil(t, todo)
-}
-
-func Test_TodoIsATask(t *testing.T) {
-	var task Task = New("this must get done")
-	assert.False(t, task.IsDone())
-	assert.Equal(t, "this must get done", task.What())
 }
 
 func Test_CanMarkTodoAsDone(t *testing.T) {
@@ -47,12 +42,18 @@ func Test_CanMarkAsDoneWithNote(t *testing.T) {
 	assert.True(t, strings.Contains(doneTask.What(), "this must get done"))
 }
 
-// func Test_MarkingAsDoneCreatesCopy(t *testing.T) {
-// 	t.Skip()
-// 	var toBeDone Todo = New("this must get done")
-// 	assert.False(t, toBeDone.IsDone())
+func Test_AllStatesAreTasks(t *testing.T) {
+	todo := New("this must get done")
+	var _ Task = todo
+	var _ Task = (todo.MarkAsDone())
+	var _ Task = (todo.MarkAsDoneWithNote("note"))
+	var _ Task = (todo.Cancel("cancelation note"))
+}
 
-// 	var done Todo = toBeDone.DoneWithNote("completion note")
-// 	assert.True(t, done.IsDone())
-// 	assert.False(t, toBeDone.IsDone())
-// }
+func Tast_CanCancelTask(t *testing.T) {
+	todo := New("this must get done")
+	cancelled := todo.Cancel("note")
+	assert.True(t, cancelled.IsCancelled())
+	assert.True(t, cancelled.IsCompleted())
+	assert.False(t, cancelled.IsDone())
+}
