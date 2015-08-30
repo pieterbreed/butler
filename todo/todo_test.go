@@ -3,6 +3,7 @@ package todo
 import (
 	"strings"
 	"testing"
+	"reflect"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -50,10 +51,32 @@ func Test_AllStatesAreTasks(t *testing.T) {
 	var _ Task = (todo.Cancel("cancelation note"))
 }
 
-func Tast_CanCancelTask(t *testing.T) {
+func Test_CanCancelTask(t *testing.T) {
 	todo := New("this must get done")
 	cancelled := todo.Cancel("note")
 	assert.True(t, cancelled.IsCancelled())
 	assert.True(t, cancelled.IsCompleted())
 	assert.False(t, cancelled.IsDone())
+}
+
+func Test_EqualsWorksAsExpected(t *testing.T) {
+	t1a := New("this must get done")
+	t1b := New("this must get done")
+	t2 := New("this too")
+
+	ef := func(a, b Task, exp bool) {
+		assert.True(t, exp == reflect.DeepEqual(a, b))
+	}
+
+	ef(t1a, t1b, true)
+	ef(t1a, t2, false)
+
+	ef(t1a.MarkAsDone(), t1b.MarkAsDone(), true)
+	ef(t1a.MarkAsDone(), t2.MarkAsDone(), false)
+
+	ef(t1a.MarkAsDoneWithNote("note"), t1b.MarkAsDoneWithNote("note"), true)
+	ef(t1a.MarkAsDoneWithNote("note"), t2.MarkAsDoneWithNote("note"), false)
+
+	ef(t1a.Cancel("note"), t1b.Cancel("note"), true)
+	ef(t1a.Cancel("note"), t2.Cancel("note"), false)
 }
